@@ -1,0 +1,20 @@
+[project]
+name = "productos-fastapi"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { email = "jjvalela0203@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+productos-fastapi = "productos_fastapi:main"
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
