@@ -1,6 +1,14 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
+class Producto(BaseModel):
+    id: int
+    nombre_del_producto: str
+    precio: float
+    cantidad: int
+    categoria: str
+
 productos = [
     {
         "id": 101,
@@ -64,6 +72,27 @@ def read_root():
 @app.get("/productos")
 def obtener_productos():
     return productos
+
+@app.post("/productos")
+def agregar_producto(producto: Producto):
+    productos.append(producto)
+    return {"mensaje": "Producto agregado exitosamente", "producto": producto}
+
+@app.put("/productos/{producto_id}")
+def actualizar_producto(producto_id: int, producto_actualizado: Producto):
+    for i, producto in enumerate(productos):
+        if producto["id"] == producto_id:
+            productos[i] = producto_actualizado
+            return {"mensaje": "Producto actualizado exitosamente", "producto": producto_actualizado}
+    return {"mensaje": "Producto no encontrado"}
+
+@app.delete("/productos/{producto_id}")
+def eliminar_producto(producto_id: int):
+    for i, producto in enumerate(productos):
+        if producto["id"] == producto_id:
+            productos.pop(i)
+            return {"mensaje": "Producto eliminado exitosamente"}
+    return {"mensaje": "Producto no encontrado"}
 
 @app.get("/busquedapornombre")
 def buscar_productos_nombre(query: str):
