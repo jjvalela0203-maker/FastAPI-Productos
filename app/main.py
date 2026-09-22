@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi import Query
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -55,8 +56,7 @@ productos = [
 ]
 
 def limpiar_texto(texto:str):
-    reemplazos = str.maketrans("áéíóúÁÉÍÓÚ", "aeiouAEIOU")
-    texto_limpio = texto.translate(reemplazos)
+    texto_limpio = texto.translate(str.maketrans("áéíóúÁÉÍÓÚ", "aeiouAEIOU"))
     return texto_limpio.lower()
 
 @app.get("/health")
@@ -94,28 +94,31 @@ def eliminar_producto(producto_id: int):
             return {"mensaje": "Producto eliminado exitosamente"}
     return {"mensaje": "Producto no encontrado"}
 
-@app.get("/busquedapornombre")
-def buscar_productos_nombre(query: str):
-    busqueda = query.lower()
-    resultado = []
-    
-    for producto in productos:
-        if busqueda in limpiar_texto(producto["nombre_del_producto"]):
-            resultado.append(producto)
-    if resultado:
-        return {"busqueda_original": query, "coincidencias": resultado}
-        
-    return {"mensaje": "No se encontró nada que contenga ese texto"}
 
-@app.get("/busquedaporcategoria")
-def buscar_productos_categoria(query: str):
-    busqueda = query.lower()
+@app.get("/buscar")
+def buscar_productos(
+    q: str = Query(..., description="Término a buscar"), 
+    limite: int = Query(10, description="Cantidad máxima de resultados a mostrar")
+):
+    # Pasamos la búsqueda del usuario por la misma función limpiadora
+    busqueda_limpia = limpiar_texto(q)
     resultado = []
     
     for producto in productos:
-        if busqueda in limpiar_texto(producto["categoria"]):
+        nombre_limpio = limpiar_texto(producto["nombre_del_producto"])
+        categoria_limpia = limpiar_texto(producto["categoria"])
+        
+        # Evaluamos si el texto está en el nombre O en la categoría
+        if busqueda_limpia in nombre_limpio or busqueda_limpia in categoria_limpia:
             resultado.append(producto)
+            
     if resultado:
-        return {"busqueda_original": query, "coincidencias": resultado}
+        # resultado[:limite] recorta la lista hasta el número indicado
+        return {
+            "busqueda_original": q,
+            "total_encontrados": len(resultado),
+            "mostrando": min(len(resultado), limite),
+            "coincidencias": resultado[:limite]
+        }
         
     return {"mensaje": "No se encontró nada que contenga ese texto"}
