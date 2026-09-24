@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  # Servicio 1: La Base de Datos
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1140918021
+      POSTGRES_DB: Productos_DB
+    ports:
+      - "5433:5432"
+
+  # Servicio 2: Tu API
+  api:
+    build: . # Le dice a Docker que busque el 'Dockerfile' en esta misma carpeta
+    ports:
+      - "8000:8000"
+    environment:
+      # Sobreescribimos la URL para que apunte al contenedor 'db' en lugar de 'localhost'
+      - DATABASE_URL=postgresql://postgres:1140918021@db:5432/Productos_DB
+    depends_on:
+      - db # Obliga a que la API espere a que la base de datos se encienda primero
