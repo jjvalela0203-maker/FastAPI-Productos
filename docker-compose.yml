@@ -6,11 +6,16 @@ services:
       # Esto enlaza la carpeta interna donde Postgres guarda datos con un volumen seguro
       - pg_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1140918021
-      POSTGRES_DB: Productos_DB
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Servicio 2: Tu API
   api:
@@ -18,9 +23,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Sobreescribimos la URL para que apunte al contenedor 'db' en lugar de 'localhost'
-      - DATABASE_URL=postgresql://postgres:1140918021@db:5432/Productos_DB
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - db # Obliga a que la API espere a que la base de datos se encienda primero
+        db: 
+          condition: service_healthy # Esto asegura que la API solo se inicie cuando la base de datos esté lista
 volumes:
   pg_data:
