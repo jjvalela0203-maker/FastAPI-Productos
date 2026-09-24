@@ -1,9 +1,10 @@
-version: "3.9"
-
 services:
   # Servicio 1: La Base de Datos
   db:
     image: postgres:15-alpine
+    volumes:
+      # Esto enlaza la carpeta interna donde Postgres guarda datos con un volumen seguro
+      - pg_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1140918021
@@ -21,3 +22,5 @@ services:
       - DATABASE_URL=postgresql://postgres:1140918021@db:5432/Productos_DB
     depends_on:
       - db # Obliga a que la API espere a que la base de datos se encienda primero
+volumes:
+  pg_data:
