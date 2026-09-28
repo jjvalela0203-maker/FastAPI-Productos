@@ -1,7 +1,46 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from sqlmodel import Session
 from app.models.products import Product
 from app.schemas.product_schema import Productcreate, Productupdated
+import boto3
+import os
+
+
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+    region_name='us-east-1'
+)
+BUCKET_NAME = os.getenv('AWS_BUCKET_NAME')
+
+def subir_imagen_producto_service(producto_id: int, file: UploadFile, session: Session):
+    # 1. Verificamos que el producto exista antes de subir nada a AWS
+    producto = session.get(Product, producto_id)
+    if not producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    # 2. Subimos el archivo a S3
+    file_name = f"productos/{producto_id}_{file.filename}"
+    try:
+        s3_client.upload_fileobj(
+            file.file, 
+            BUCKET_NAME, 
+            file_name,
+            ExtraArgs={"ContentType": file.content_type}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir imagen a AWS: {str(e)}")
+    
+    # 3. Construimos la URL pública y actualizamos la base de datos
+    url_imagen = f"https://{BUCKET_NAME}.s3.amazonaws.com/{file_name}"
+    producto.url = url_imagen
+    
+    session.add(producto)
+    session.commit()
+    session.refresh(producto)
+    
+    return producto
 
 def create_product(product: Productcreate, session: Session):
     

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,UploadFile, File
 from sqlmodel import Session
 from app.database import get_session
 from app.schemas.product_schema import Productcreate, Productupdated
@@ -22,3 +22,12 @@ def update_product(product_id: int, product_data: Productupdated, session: Sessi
 @router.delete("/{product_id}")
 def delete_product(product_id: int, session: Session = Depends(get_session)):
     return product_service.delete_product(product_id, session)
+
+@router.post("/productos/{producto_id}/imagen")
+def cargar_imagen(
+    producto_id: int, 
+    file: UploadFile = File(...), 
+    session: Session = Depends(get_session)
+):
+    producto_actualizado = product_service.subir_imagen_producto_service(producto_id, file, session)
+    return {"mensaje": "Imagen cargada con éxito", "producto": producto_actualizado}

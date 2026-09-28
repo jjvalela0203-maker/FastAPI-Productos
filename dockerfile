@@ -11,7 +11,7 @@ RUN pip install uv
 COPY ./app /code/app
 
 # 5. Instalamos las dependencias globales dentro del contenedor
-RUN uv pip install --system fastapi sqlmodel psycopg2-binary uvicorn
+RUN uv pip install --system fastapi sqlmodel psycopg2-binary uvicorn boto3 python-multipart
 
 # 6. El comando que ejecutará el contenedor al encenderse
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

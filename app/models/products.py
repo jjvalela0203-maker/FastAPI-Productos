@@ -9,3 +9,4 @@ class Product(SQLModel, table=True):
     precio: float
     cantidad: int
     categoria: str = Field(index=True)
+    url: Optional[str] = Field(default=None, index=True)
