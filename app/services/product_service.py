@@ -13,12 +13,21 @@ s3_client = boto3.client(
     region_name='us-east-1'
 )
 BUCKET_NAME = os.getenv('AWS_BUCKET_NAME')
-
-def subir_imagen_producto_service(producto_id: int, file: UploadFile, session: Session):
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+async def subir_imagen_producto_service(producto_id: int, file: UploadFile, session: Session):
     # 1. Verificamos que el producto exista antes de subir nada a AWS
     producto = session.get(Product, producto_id)
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
+    
+    contents = await file.read()
+    
+    # Comprobar el tamaño real del archivo
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400, 
+            detail="El archivo es demasiado pesado. El límite máximo permitido es de 5MB."
+        )
 
     # 2. Subimos el archivo a S3
     file_name = f"productos/{producto_id}_{file.filename}"
