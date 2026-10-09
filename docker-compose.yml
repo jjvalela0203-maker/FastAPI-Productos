@@ -1,5 +1,5 @@
 services:
-  # Servicio 1: La Base de Datos
+  # Servicio 1: Base de Datos
   db:
     image: postgres:15-alpine
     volumes:
@@ -16,9 +16,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # Servicio 2: Tu API
-  api:
+  rabbitmq: # Servicio 3: RabbitMQ
+    image: "rabbitmq:3-management" 
+    ports:
+      - "5672:5672"   
+      - "15672:15672"
+  api: # Servicio 2: API
     build: . # Le dice a Docker que busque el 'Dockerfile' en esta misma carpeta
     ports:
       - "8000:8000"
